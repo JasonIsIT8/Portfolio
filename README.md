@@ -1,8 +1,8 @@
-# Jason's Portfolio
+# Jason Hochmuth — Portfolio
 
-> Personal portfolio and resume site — built with HTML/CSS, hosted on GitHub Pages.
+> Aspiring SOC Analyst with hands-on experience in cybersecurity lab environments — building skills in threat detection, SIEM tools, and incident response through coursework, labs, and real infrastructure work.
 
-🌐 **Live site:** [yourusername.github.io](https://yourusername.github.io)
+🌐 **Live site:** [yourusername.github.io/portfolio](https://yourusername.github.io/portfolio)
 
 ---
 
@@ -40,8 +40,9 @@ The live site updates within about 60 seconds.
 
 - [ ] Connect Supabase so Log Work entries persist across devices
 - [ ] Add QR / NFC tag linking to live site
-- [ ] Add more projects as I build them
+- [ ] Add CompTIA Security+ certification
+- [ ] Add home SOC lab project
 
 ---
 
-*Learning in public — one commit at a time.*
+*Building in public — one commit at a time.*

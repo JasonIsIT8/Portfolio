@@ -590,15 +590,46 @@ const SEED = {
 };
 
 /* ═══════════════════════════════
-   PASSWORD — change before uploading!
+   PASSWORD — change this to your own!
 ═══════════════════════════════ */
 const PASSWORD = 'myportfolio123';
 
 /* ═══════════════════════════════
-   STORAGE
+   SUPABASE CONFIG
 ═══════════════════════════════ */
-function loadEntries() { try { return JSON.parse(localStorage.getItem('portfolio_entries')||'[]'); } catch(e){ return []; } }
-function saveEntries(a){ localStorage.setItem('portfolio_entries', JSON.stringify(a)); }
+const SUPA_URL = 'https://imfftfswaydferancsvw.supabase.co';
+const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImltZmZ0ZnN3YXlkZmVyYW5jc3Z3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE0NTU1NzMsImV4cCI6MjA5NzAzMTU3M30.mLo-eSgz2Mz_57XkKA-F6eCXi4OWmgEMhXP56yCCLGM';
+const HEADERS  = { 'Content-Type':'application/json', 'apikey': SUPA_KEY, 'Authorization': 'Bearer '+SUPA_KEY };
+
+/* ═══════════════════════════════
+   SUPABASE STORAGE
+═══════════════════════════════ */
+let _cachedEntries = null;
+
+async function loadEntries(){
+  if(_cachedEntries) return _cachedEntries;
+  try {
+    const res = await fetch(`${SUPA_URL}/rest/v1/entries?select=*&order=created_at.desc`, { headers: HEADERS });
+    const rows = await res.json();
+    _cachedEntries = rows.map(r => ({ id: r.id, ...r.data, _created: r.created_at }));
+    return _cachedEntries;
+  } catch(e){ console.error('loadEntries failed', e); return []; }
+}
+
+async function pushEntry(entry){
+  const { id, _created, ...data } = entry;
+  await fetch(`${SUPA_URL}/rest/v1/entries`, {
+    method: 'POST',
+    headers: { ...HEADERS, 'Prefer': 'return=minimal' },
+    body: JSON.stringify({ type: entry.type, data })
+  });
+  _cachedEntries = null;
+}
+
+async function removeEntry(id){
+  await fetch(`${SUPA_URL}/rest/v1/entries?id=eq.${id}`, { method: 'DELETE', headers: HEADERS });
+  _cachedEntries = null;
+}
 
 /* ═══════════════════════════════
    AUTH
@@ -616,7 +647,7 @@ function checkAuth(){
 /* ═══════════════════════════════
    TABS
 ═══════════════════════════════ */
-function switchTab(name){
+async function switchTab(name){
   document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.nav-tabs button').forEach(b=>b.classList.remove('active'));
   document.getElementById('tab-'+name).classList.add('active');
@@ -625,7 +656,7 @@ function switchTab(name){
   if(name==='logwork'&&authed){
     document.getElementById('auth-gate').style.display='none';
     document.getElementById('log-form-area').style.display='block';
-    renderEntryList();
+    await renderEntryList();
   }
 }
 
@@ -642,8 +673,8 @@ function setType(type,el){
 /* ═══════════════════════════════
    SAVE
 ═══════════════════════════════ */
-function saveEntry(type){
-  const entries=loadEntries(); let entry={id:Date.now().toString(),type};
+async function saveEntry(type){
+  let entry={ type };
   if(type==='project'){
     const name=document.getElementById('proj-name').value.trim();
     if(!name) return alert('Please enter a project name.');
@@ -671,18 +702,21 @@ function saveEntry(type){
     entry.year=document.getElementById('cert-year').value.trim();
     ['cert-name','cert-issuer','cert-year'].forEach(id=>document.getElementById(id).value='');
   }
-  entries.unshift(entry); saveEntries(entries);
-  renderAll(); renderEntryList();
+  showToast('// saving...');
+  await pushEntry(entry);
+  await renderAll();
+  await renderEntryList();
   showToast('// entry saved. portfolio updated.');
 }
 
 /* ═══════════════════════════════
    DELETE
 ═══════════════════════════════ */
-function deleteEntry(id){
+async function deleteEntry(id){
   if(!confirm('Remove this entry?')) return;
-  saveEntries(loadEntries().filter(e=>e.id!==id));
-  renderAll(); renderEntryList();
+  await removeEntry(id);
+  await renderAll();
+  await renderEntryList();
 }
 
 /* ═══════════════════════════════
@@ -696,8 +730,8 @@ function showToast(msg){
 /* ═══════════════════════════════
    RENDER
 ═══════════════════════════════ */
-function renderAll(){
-  const e=loadEntries();
+async function renderAll(){
+  const e=await loadEntries();
   const projects=[...SEED.projects,...e.filter(x=>x.type==='project')];
   const skills  =[...SEED.skills,  ...e.filter(x=>x.type==='skill')];
   const exps    =[...SEED.experience,...e.filter(x=>x.type==='experience')];
@@ -772,8 +806,8 @@ function renderResume(projects,skills,exps,certs){
     </div>`).join('');
 }
 
-function renderEntryList(){
-  const entries=loadEntries(); const list=document.getElementById('entry-list');
+async function renderEntryList(){
+  const entries=await loadEntries(); const list=document.getElementById('entry-list');
   if(!entries.length){ list.innerHTML='<div class="empty-state">// no entries yet. use the form above.</div>'; return; }
   list.innerHTML=entries.map(e=>`
     <div class="entry-item">

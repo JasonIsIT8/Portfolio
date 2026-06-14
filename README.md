@@ -2,7 +2,9 @@
 
 > Aspiring SOC Analyst with hands-on experience in cybersecurity lab environments — building skills in threat detection, SIEM tools, and incident response through coursework, labs, and real infrastructure work.
 
-🌐 **Live site:** [jasonisit8.github.io/portfolio][([https://jasonisit8.github.io/Portfolio/)]
+🌐 **Live site:** [jasonisit8.github.io/Portfolio](https://jasonisit8.github.io/Portfolio/)
+
+📁 **Repository:** [github.com/jasonisit8/Portfolio](https://github.com/jasonisit8/Portfolio)
 
 ---
 
